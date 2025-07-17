@@ -1,8 +1,12 @@
 ﻿using CommBank.Models;
 using CommBank.Services;
 using MongoDB.Driver;
+using DotNetEnv;  // Add this line
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load .env file - Add this line
+Env.Load();
 
 builder.Services.AddControllers();
 
@@ -11,8 +15,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Configuration.SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("Secrets.json");
 
-var mongoClient = new MongoClient(builder.Configuration.GetConnectionString("CommBank"));
-var mongoDatabase = mongoClient.GetDatabase("CommBank");
+// Update this line to use environment variable first
+var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING") 
+    ?? builder.Configuration.GetConnectionString("CommBank");
+
+var mongoClient = new MongoClient(connectionString);
+var mongoDatabase = mongoClient.GetDatabase("commbank");
 
 IAccountsService accountsService = new AccountsService(mongoDatabase);
 IAuthService authService = new AuthService(mongoDatabase);
@@ -50,4 +58,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
